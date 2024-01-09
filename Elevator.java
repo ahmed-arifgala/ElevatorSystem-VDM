@@ -106,6 +106,10 @@ public class Elevator implements InvariantCheck {
 
     //invariant is supposed to be a public function that returns a boolean
     public boolean inv (){
+        // System.out.println(inRange(pickFloor));
+        // System.out.println(inRange(destFloor));
+        // System.out.println(inRange(userFloor));
+        // System.out.println(inRange(currentFloor));
         return (inRange(pickFloor) && inRange(destFloor) 
         && inRange(userFloor) && inRange(currentFloor));
     }
@@ -118,12 +122,12 @@ public class Elevator implements InvariantCheck {
 
     //Implementing Init of VDM through a constructor     
     public Elevator() {
-        this.pickFloor = 20;
+        this.pickFloor = 0;
         this.destFloor = 0;
         this.currentFloor = 0;
         this.direction = ""; // Add a default value for String
         this.userFloor = 0;
-        this.isStop = false;
+        this.isStop = true;
         this.isDoorOpen = false;
 
         VDM.invTest(this);
@@ -132,8 +136,13 @@ public class Elevator implements InvariantCheck {
     //Implementing OPERATIONS
 
     public void reqElevator (int floor){
+        
+        System.out.println("\nElevator is Requested");
+
         VDM.preTest(inRange(floor)); //applying preconditon check using VDM class that throws an exception
        
+        System.out.println("You are at Floor Number: " + floor);
+
         pickFloor = floor;
         userFloor = floor;
         closeDoor();
@@ -159,22 +168,27 @@ public class Elevator implements InvariantCheck {
 
     public ElevatorSignal start (){
         
+        System.out.println("\nStart Function is called");
+        
         VDM.preTest(isDoorOpen == false && isStop == true);
 
         ElevatorSignal signalOut = ElevatorSignal.DO_NOTHING;
 
         if(userFloor == currentFloor){
+            System.out.println("\nElevator is at the same floor");
             openDoor();
             signalOut = ElevatorSignal.DO_NOTHING;  
         }
 
         if(userFloor < currentFloor){
+            System.out.println("Elevator is moving downwards");
             direction = "down";
             drive();
             signalOut = ElevatorSignal.DOWN;
         }
 
         if(userFloor > currentFloor){
+            System.out.println("Elevator is moving upwards");
             direction = "up";
             drive();
             signalOut = ElevatorSignal.UP;
@@ -188,11 +202,14 @@ public class Elevator implements InvariantCheck {
 
     public void drive(){
 
+        System.out.println("Drive Function is called");
+
         VDM.preTest(userFloor != currentFloor);
 
         isStop = false;
 
         while(userFloor != currentFloor){ //drive until they are not equal
+            System.out.println("Floor - " + currentFloor );
 
             if(direction == "up"){
                 increment();
@@ -203,6 +220,10 @@ public class Elevator implements InvariantCheck {
             }
         }
 
+        System.out.println("Floor - " + currentFloor );
+        
+        System.out.println("The Elevator has arrived");
+        
         stop();  //it is called when while loop is finished as 
                  //at that point userFloor == currentFloor so stop
         
@@ -211,6 +232,7 @@ public class Elevator implements InvariantCheck {
 
     public ElevatorSignal increment (){
         
+        System.out.println("Increment function called");
         VDM.preTest(userFloor > currentFloor);
 
         currentFloor = currentFloor + 1;
@@ -226,6 +248,8 @@ public class Elevator implements InvariantCheck {
 
     public ElevatorSignal decrement (){
         
+        System.out.println("Decrement function called");
+
         VDM.preTest(userFloor < currentFloor);
 
         currentFloor = currentFloor - 1;
@@ -238,6 +262,8 @@ public class Elevator implements InvariantCheck {
     }
 
     public ElevatorSignal stop (){
+
+        System.out.println("Elevator Stopped");
 
         VDM.preTest(isStop == false && userFloor == currentFloor);
         
@@ -253,7 +279,7 @@ public class Elevator implements InvariantCheck {
 
     public DoorSignal openDoor(){
 
-        System.out.println("Open Door Function called!");
+        System.out.println("Opening Door..");
 
         VDM.preTest(!isDoorOpen && isStop);
 
@@ -268,7 +294,7 @@ public class Elevator implements InvariantCheck {
 
     public DoorSignal closeDoor(){  //returns a DoorSignal object
         
-        System.out.println("Close Door Function called!");
+        System.out.println("Closing Door..");
         // VDM.preTest(isDoorOpen); 
         
         isDoorOpen = false;
@@ -298,8 +324,6 @@ public class Elevator implements InvariantCheck {
         
     }
 
-    
-
 };
 
 //TESTER CLASS
@@ -317,7 +341,6 @@ class ElevatorTester {
         try {
 
             Elevator elevator = new Elevator(); //creating obj of the Elevator class
-
             do{
                 System.out.println("\n\t\tElevator Sytem\n");
                 System.out.println("1: Request Elevator");
@@ -332,11 +355,11 @@ class ElevatorTester {
                 try {
                     switch (choice) {
                         case '1':
-                            option1(elevator);
+                            option1(elevator, scanner);
                             break;
                         
                         case '2':
-                            option2(elevator);
+                            option2(elevator, scanner);
                             break;
                 
                         default:
@@ -346,10 +369,11 @@ class ElevatorTester {
                     e.printStackTrace();
                 }
 
-            }while(choice != '4');
+            }while(choice != '3');
 
         } catch (Exception e) { //to catch invariant violation in initialization of Elevator object
             System.out.println("Initialization values violate invariant!");
+            System.out.println("Set Initialization values according to invariant!");
             System.out.println("\nPress Enter to quit");
             scanner.nextLine();
 
@@ -360,26 +384,20 @@ class ElevatorTester {
     }; 
 
 
-    public static void option1(Elevator elevator){
+    public static void option1(Elevator elevator, Scanner scanner){
  
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Enter Current Floor Number: ");
+        System.out.println("Enter Current Floor Number: ");
         int userInput = scanner.nextInt();
         elevator.reqElevator(userInput); 
 
-        scanner.close();
     };
 
-    public static void option2(Elevator elevator){
+    public static void option2(Elevator elevator, Scanner scanner){
 
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Enter Destination Floor Number: ");
+        System.out.println("Enter Destination Floor Number: ");
         int userInput = scanner.nextInt();
         elevator.reqFloor(userInput);
 
-        scanner.close();
     };
     
 
