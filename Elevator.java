@@ -1,5 +1,3 @@
-
-
 //TYPES in VDM: ElevatorSignal and DoorSignal that are used to signal the hardware components
 
 class ElevatorSignal {
@@ -19,26 +17,20 @@ class ElevatorSignal {
         value = v;
     }
 
-    //receives a object of type Object 
-    public boolean equals(Object objectIn){
-        ElevatorSignal s = (ElevatorSignal) objectIn; //therefore typecasting to ElevatorSignal type is done
-        return value == s.value;
-    }
-
     public String toString(){
 
         switch (value) {
             case 0:
-                return "UP";
+                return "SIGNAL UP";
         
             case 1:
-                return "DOWN";
+                return "SIGNAL DOWN";
 
             case 2:
-                return "STOP";
+                return "SIGNAL STOP";
 
             default:
-                return "DO_NOTHING";
+                return "SIGNAL DO_NOTHING";
         }
     }
 
@@ -56,22 +48,16 @@ class DoorSignal {
         value = x;
     }
 
-    public boolean equals (Object objectIn){
-        DoorSignal d = (DoorSignal) objectIn;
-        return value == d.value;
-    }
-
     public String toString(){
 
         switch (value) {
             case 0:
-                return "OPEN";
+                return "SIGNAL OPEN";
         
             default:
-                return "CLOSE";
+                return "SIGNAL CLOSE";
         }
     }
-
 
 };
 
@@ -82,9 +68,11 @@ interface InvariantCheck{
 /**
  * Elevator
  */
+
 public class Elevator implements InvariantCheck {
 
     //declaring VALUES of VDM that are constant values
+
     public static final int MAX = 15; //represents highest floor
     public static final int MIN = 0; //represents lowest floor
 
@@ -105,10 +93,6 @@ public class Elevator implements InvariantCheck {
 
     //invariant is supposed to be a public function that returns a boolean
     public boolean inv (){
-        // System.out.println(inRange(pickFloor));
-        // System.out.println(inRange(destFloor));
-        // System.out.println(inRange(userFloor));
-        // System.out.println(inRange(currentFloor));
         return (inRange(pickFloor) && inRange(destFloor) 
         && inRange(userFloor) && inRange(currentFloor));
     }
@@ -140,7 +124,8 @@ public class Elevator implements InvariantCheck {
 
         VDM.preTest(inRange(floor)); //applying preconditon check using VDM class that throws an exception
        
-        System.out.println("You are at Floor Number: " + floor);
+        System.out.println("\nYou are at Floor Number: " + floor);
+        System.out.println("Elevator is at Floor Number: " + currentFloor);
 
         pickFloor = floor;
         userFloor = floor;
@@ -153,6 +138,9 @@ public class Elevator implements InvariantCheck {
     }
 
     public void reqFloor (int floor){
+
+        System.out.println("\nFloor " + floor +  "is Requested");
+
         VDM.preTest(inRange(floor)); //applying preconditon check using VDM class that throws an exception
        
         destFloor = floor;
@@ -166,9 +154,7 @@ public class Elevator implements InvariantCheck {
     }
 
     public ElevatorSignal start (){
-        
-        System.out.println("\nStart Function is called");
-        
+    
         VDM.preTest(isDoorOpen == false && isStop == true);
 
         ElevatorSignal signalOut = ElevatorSignal.DO_NOTHING;
@@ -176,18 +162,19 @@ public class Elevator implements InvariantCheck {
         if(userFloor == currentFloor){
             System.out.println("\nElevator is at the same floor");
             openDoor();
-            signalOut = ElevatorSignal.DO_NOTHING;  
+            signalOut = ElevatorSignal.DO_NOTHING;
+            System.out.println(signalOut.toString());  
         }
 
         if(userFloor < currentFloor){
-            System.out.println("Elevator is moving downwards");
+            System.out.println("\nElevator will move downwards");
             direction = "down";
             drive();
             signalOut = ElevatorSignal.DOWN;
         }
 
         if(userFloor > currentFloor){
-            System.out.println("Elevator is moving upwards");
+            System.out.println("\nElevator will move upwards");
             direction = "up";
             drive();
             signalOut = ElevatorSignal.UP;
@@ -201,27 +188,38 @@ public class Elevator implements InvariantCheck {
 
     public void drive(){
 
-        System.out.println("Drive Function is called");
-
         VDM.preTest(userFloor != currentFloor);
+        
+        System.out.println("\nElevator has started moving");
 
         isStop = false;
-
+        
         while(userFloor != currentFloor){ //drive until they are not equal
-            System.out.println("Floor - " + currentFloor );
+            System.out.println("\nFloor - " + currentFloor );
 
             if(direction == "up"){
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 increment();
             }
 
             if(direction == "down"){
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 decrement();
             }
         }
 
-        System.out.println("Floor - " + currentFloor );
+        System.out.println("\nFloor - " + currentFloor );
         
-        System.out.println("The Elevator has arrived");
+        System.out.println("\nThe Elevator has arrived");
         
         stop();  //it is called when while loop is finished as 
                  //at that point userFloor == currentFloor so stop
@@ -231,11 +229,11 @@ public class Elevator implements InvariantCheck {
 
     public ElevatorSignal increment (){
         
-        System.out.println("Increment function called");
         VDM.preTest(userFloor > currentFloor);
 
         currentFloor = currentFloor + 1;
         ElevatorSignal signalOut = ElevatorSignal.UP;
+        System.out.println(signalOut.toString());  
 
         VDM.invTest(this); //invariant check before returning
 
@@ -247,12 +245,11 @@ public class Elevator implements InvariantCheck {
 
     public ElevatorSignal decrement (){
         
-        System.out.println("Decrement function called");
-
         VDM.preTest(userFloor < currentFloor);
 
         currentFloor = currentFloor - 1;
         ElevatorSignal signalOut = ElevatorSignal.DOWN;
+        System.out.println(signalOut.toString());  
 
         VDM.invTest(this);
 
@@ -262,7 +259,7 @@ public class Elevator implements InvariantCheck {
 
     public ElevatorSignal stop (){
 
-        System.out.println("Elevator Stopped");
+        System.out.println("\nElevator Stopped");
 
         VDM.preTest(isStop == false && userFloor == currentFloor);
         
@@ -270,6 +267,7 @@ public class Elevator implements InvariantCheck {
         openDoor();
 
         ElevatorSignal signalOut = ElevatorSignal.STOP;
+        System.out.println(signalOut.toString());  
 
         return signalOut;
 
@@ -278,12 +276,18 @@ public class Elevator implements InvariantCheck {
 
     public DoorSignal openDoor(){
 
-        System.out.println("Opening Door..");
-
+        System.out.println("\nOpening Door..");
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
         VDM.preTest(!isDoorOpen && isStop);
 
         isDoorOpen = true;
         DoorSignal signalOut = DoorSignal.OPEN; 
+        System.out.println(signalOut.toString());
 
         VDM.invTest(this);
 
@@ -293,34 +297,22 @@ public class Elevator implements InvariantCheck {
 
     public DoorSignal closeDoor(){  //returns a DoorSignal object
         
-        System.out.println("Closing Door..");
-        // VDM.preTest(isDoorOpen); 
+        System.out.println("\nClosing Door..");
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         
         isDoorOpen = false;
         //declare and initialize a DoorSignal output variable.
         DoorSignal signalOut = DoorSignal.CLOSE;
+        System.out.println(signalOut.toString());  
 
         VDM.invTest(this);
 
         return signalOut;
         //completed
-    }
-
-
-    public int getPickFloor () {
-        return pickFloor;
-        //completed
-    }
-    
-    public int getDestFloor () {
-        return destFloor;
-        //completed
-    }
-
-    public int getCurrentFloor (){
-        return currentFloor;
-        //completed
-        
     }
 
 };
